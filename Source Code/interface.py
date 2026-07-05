@@ -1,9 +1,7 @@
-import matplotlib.pyplot as plt
+import matplotlib
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, font
 
-oxidizer_items = ["LOX", "H2O2"]
-fuel_items = ["CH4", "LH2"]
 
 class Interface:
     def __init__(self, root: tk, results: dict, errors: list[str], on_solve: callable, on_save: callable):
@@ -17,7 +15,6 @@ class Interface:
 
     def get_inputs_on_solve(self) -> dict:
         return {
-            # Engine Definition
             "oxidizer": self.input_oxidizer.get()    if self.input_oxidizer.get() else None,
             "fuel":     self.input_fuel.get()        if self.input_fuel.get() else None,
             "Pc":       float(self.input_Pc.get())   if self.input_Pc.get() else None,
@@ -27,7 +24,6 @@ class Interface:
             "unit_mfr": self.unit_mfr.get()          if self.unit_mfr.get() else None,
             "eps":      float(self.input_eps.get())  if self.input_eps.get() else None,
 
-            # Aerospike Parameters
             "radius":               float(self.input_radius.get())                if self.input_radius.get() else None,
             "unit_radius":          self.unit_radius.get()                        if self.unit_radius.get() else None,
             "effective_throat_eps": float(self.input_effective_throat_eps.get())  if self.input_effective_throat_eps.get() else None,
@@ -38,27 +34,26 @@ class Interface:
 
 
     def build_interface(self):
-        underline_font = font.Font(family="Arial", size=9, underline=1)
+        UNDERLINE_FONT = font.Font(family="Arial", size=9, underline=1)
+        OXIDIZER_ITEMS = ["LOX", "GOX", "N2O4", "N2O", "IRFNA", "H2O2", "Peroxide90", "Peroxide98", "MON3", "MON15", "MON25"]
+        FUEL_ITEMS = ["RP1", "LH2", "CH4", "MMH", "N2H4", "UDMH", "A50", "Ethanol", "Methanol", "GH2", "GCH4", "JetA", "JP10"]
 
-        ttk.Label(self.root, text="Engine definition", font=underline_font).grid(column=0, row=0, padx=7, pady=4, sticky='W')
+        ttk.Label(self.root, text="Engine definition", font=UNDERLINE_FONT).grid(column=0, row=0, padx=7, pady=4, sticky='W')
 
         # Oxidizer
         ttk.Label(self.root, text='Oxidizer:').grid(column=0, row=1, padx=2, sticky='W')
-        self.input_oxidizer = ttk.Combobox(self.root, values=oxidizer_items, width=15)
+        self.input_oxidizer = ttk.Combobox(self.root, values=OXIDIZER_ITEMS, width=15)
         self.input_oxidizer.grid(column=1, row=1, padx=5, pady=1, sticky='W')
-        self.input_oxidizer.set('LOX')
 
         # Fuel
         ttk.Label(self.root, text='Fuel:').grid(column=0, row=2, padx=2, sticky='W')
-        self.input_fuel = ttk.Combobox(self.root, values=fuel_items, width=15)
+        self.input_fuel = ttk.Combobox(self.root, values=FUEL_ITEMS, width=15)
         self.input_fuel.grid(column=1, row=2, padx=5, pady=1, sticky='W')
-        self.input_fuel.set('H2')
 
         # Chamber Pressure
         ttk.Label(self.root, text='Chamber Pressure:').grid(column=0, row=3, padx=2, sticky='W')
         self.input_Pc = ttk.Entry(self.root, width=8)
         self.input_Pc.grid(column=1, row=3, padx=5, pady=1, sticky='W')
-        self.input_Pc.insert(0, '120')
 
         self.unit_Pc = ttk.Combobox(self.root, values=["bar", "Pa", "atm", "kPa", "psi", "MPa"], width=4)
         self.unit_Pc.grid(column=1, row=3, padx=70, pady=1, sticky='W')
@@ -68,12 +63,10 @@ class Interface:
         ttk.Label(self.root, text='Mixture Ratio:').grid(column=0, row=4, padx=2, sticky='W')
         self.input_MR = ttk.Entry(self.root, width=18)
         self.input_MR.grid(column=1, row=4, padx=5, pady=1, sticky='W')
-        self.input_MR.insert(0, '6')
 
         # Mass Flow
         ttk.Label(self.root, text='Nozzle Mass Flow:').grid(column=0, row=5, padx=2, sticky='W')
         self.input_mfr = ttk.Entry(self.root, width=8)
-        self.input_mfr.insert(0, '4')
         self.input_mfr.grid(column=1, row=5, padx=5, pady=1, sticky='W')
 
         self.unit_mfr = ttk.Combobox(self.root, values=["kg/s", "lb/s", "g/s"], width=4)
@@ -83,18 +76,16 @@ class Interface:
         # Area Ratio
         ttk.Label(self.root, text='Design Area Ratio:').grid(column=0, row=6, padx=2, pady=5, sticky='W')
         self.input_eps = ttk.Entry(self.root, width=18)
-        self.input_eps.insert(0, '150')
         self.input_eps.grid(column=1, row=6, padx=5, pady=1, sticky='W')
 
 
 
 
-        ttk.Label(self.root, text='Aerospike Definition', font=underline_font).grid(column=0, row=7, padx=7, pady=4, sticky='W')
+        ttk.Label(self.root, text='Aerospike Definition', font=UNDERLINE_FONT).grid(column=0, row=7, padx=7, pady=4, sticky='W')
 
         # Top Radius
-        ttk.Label(self.root, text='Aerospike Top Radius (m):').grid(column=0, row=8, padx=2, sticky='W')
+        ttk.Label(self.root, text='Aerospike Top Radius:').grid(column=0, row=8, padx=2, sticky='W')
         self.input_radius = ttk.Entry(self.root, width=8)
-        self.input_radius.insert(0, '0.3')
         self.input_radius.grid(column=1, row=8, padx=5, pady=1, sticky='W')
 
         self.unit_radius = ttk.Combobox(self.root, values=["m", "cm", "in", "ft"], width=4)
@@ -104,34 +95,34 @@ class Interface:
         # Effective Throat Area Ratio
         ttk.Label(self.root, text='Effective Throat Area Ratio:').grid(column=0, row=9, padx=2, sticky='W')
         self.input_effective_throat_eps = ttk.Entry(self.root, width=18)
-        self.input_effective_throat_eps.insert(0, '1')
         self.input_effective_throat_eps.grid(column=1, row=9, padx=5, pady=1, sticky='W')
 
         # Throat Angle
         ttk.Label(self.root, text="Throat Angle (deg):").grid(column=0, row=10, padx=2, sticky='W')
         self.input_throat_angle = ttk.Entry(self.root, width=18)
-        self.input_throat_angle.insert(0, '70')
         self.input_throat_angle.grid(column=1, row=10, padx=5, pady=1, sticky='W')
 
         # Truncation
         ttk.Label(self.root, text='Truncate at (%):').grid(column=0, row=11, padx=2, sticky='W')
         self.input_truncate_percentage = ttk.Entry(self.root, width=18)
-        self.input_truncate_percentage.insert(0, '100')
         self.input_truncate_percentage.grid(column=1, row=11, padx=5, pady=1, sticky='W')
 
         # Resolution
         ttk.Label(self.root, text='Aerospike Resolution:').grid(column=0, row=12, padx=2, sticky='W')
         self.input_aerospike_resolution = ttk.Entry(self.root, width=18)
-        self.input_aerospike_resolution.insert(0, '200')
         self.input_aerospike_resolution.grid(column=1, row=12, padx=5, pady=1, sticky='W')
 
 
         # Solver
-        ttk.Button(self.root, text='Generate', command=self.on_solve).grid(column=0, row=13, pady=7)
+        ttk.Button(self.root, text='Run', command=self.on_solve).grid(column=0, row=13, pady=7)
         ttk.Button(self.root, text='Save Contour', command=self.on_save).grid(column=1, row=13, pady=7)
 
 
     def show_results(self):
+        import matplotlib
+        matplotlib.use("TkAgg")
+        import matplotlib.pyplot as plt
+        
         x, y = self.results["x"], self.results["R_x"]
 
         plt.figure()
@@ -149,11 +140,11 @@ class Interface:
 
 
     def save_file(self):
-        if self.results is None:
-            messagebox.showerror("Error", "You must run the program before attempting to save the file.")
+        try:
+            x, R, eps = self.results["x"], self.results["R_x"], self.results["eps_x"]
+        except Exception:
+            messagebox.showerror("Error", "You must run the program before attempting to save the results.")
             return
-        
-        x, R, eps = self.results["x"], self.results["R_x"], self.results["eps_x"]
 
         try:
             file_path = filedialog.asksaveasfilename(defaultextension=".dat", filetypes=[("DAT files", "*.dat")])

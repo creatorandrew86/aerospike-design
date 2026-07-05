@@ -1,6 +1,5 @@
 from rocketcea.cea_obj_w_units import CEA_Obj
 from scipy.optimize import brentq
-import numpy as np
 
 
 # Unit Conversion
@@ -28,6 +27,8 @@ def _mass_flow_conversion(value, unit):
 
 
 def _prandtl_meyer_angle(mach: float, gamma: float) -> float:
+    import numpy as np
+
     mach = max(mach, 1)
     pm_angle = np.sqrt((gamma + 1)/(gamma - 1)) * np.arctan(np.sqrt((gamma - 1)/(gamma + 1) * (mach**2 - 1))) - np.arctan(np.sqrt(mach**2 - 1))
     return pm_angle
@@ -43,12 +44,16 @@ def _eps_from_mach(mach: float, Pc: float, MR: float, c: CEA_Obj) -> float:
     return brentq(residual, 1, 1000)
 
 def _mach_angle(mach: float) -> float:
+    import numpy as np
+
     mach = max(mach, 1)
     return np.arcsin(1 / mach)
 
 
 
 def generate_aerospike_contour(inputs: dict) -> tuple[dict, list[str]]:
+    import numpy as np
+    
     errors = []
 
     if any(value is None for _, value in inputs.items()):
@@ -82,72 +87,93 @@ def generate_aerospike_contour(inputs: dict) -> tuple[dict, list[str]]:
     c = CEA_Obj(oxName=oxidizer, fuelName=fuel, pressure_units="Pa", sonic_velocity_units="m/s", density_units="kg/m^3", temperature_units="K")
     
     # Throat area calculation
-    throat_c = c.get_SonicVelocities(Pc=Pc, MR=MR, eps=exit_eps)[1]
-    throat_rho = c.get_Densities(Pc=Pc, MR=MR, eps=exit_eps)[1]
+    try:
+        throat_c = c.get_SonicVelocities(Pc=Pc, MR=MR, eps=exit_eps)[1]
+        throat_rho = c.get_Densities(Pc=Pc, MR=MR, eps=exit_eps)[1]
 
-    throat_area = mfr / (throat_c * throat_rho)
+        throat_area = mfr / (throat_c * throat_rho)
 
-    if throat_angle == np.radians(90):
-        throat_length = throat_area / (2 * np.pi * radius)
+    except ZeroDivisionError as e:
+        errors.append(f"Throat Area calculation failed with {e}")
+        return errors
 
-    elif (throat_angle >= np.radians(30) and throat_angle < np.radians(90)):
-        throat_length = (-2 * np.pi * radius + np.sqrt(pow(-2 * np.pi * radius, 2) + 4 * np.pi * np.sin(throat_angle) * throat_area)) \
-                        / (2 * np.pi * np.sin(throat_angle))
-        
-    elif throat_angle < np.radians(90):
-        errors.append("Throat angle cannot be smaller than 30 degrees")
 
-    elif throat_angle > np.radians(90):
-        errors.append("Throat angle cannot be greater than 90 degrees")
-        
+    try:
+        if throat_angle == np.radians(90):
+            throat_length = throat_area / (2 * np.pi * radius)
 
-    print(throat_area, throat_c, throat_rho, throat_length)
+        elif (throat_angle >= np.radians(30) and throat_angle < np.radians(90)):
+            throat_length = (-2 * np.pi * radius + np.sqrt(pow(-2 * np.pi * radius, 2) + 4 * np.pi * np.sin(throat_angle) * throat_area)) \
+                            / (2 * np.pi * np.sin(throat_angle))
+            
+        elif throat_angle < np.radians(90):
+            errors.append("Throat angle cannot be smaller than 30 degrees")
 
-    # Mach Number values
-    entry_mach = max(c.get_MachNumber(Pc=Pc, MR=MR, eps=effective_throat_eps), 1 + 1e-6)
-    exit_mach  = max(c.get_MachNumber(Pc=Pc, MR=MR, eps=exit_eps), 1 + 1e-6)
+        elif throat_angle > np.radians(90):
+            errors.append("Throat angle cannot be greater than 90 degrees")
+    
+    except Exception as e:
+        errors.append(f"Throat Length Calculation failed with {e}")
+        return errors
 
-    # Aerospike throat conditions
-    entry_gamma = c.get_exit_MolWt_gamma(Pc=Pc, MR=MR, eps=effective_throat_eps)[1]
-    entry_pm_angle = _prandtl_meyer_angle(entry_mach, entry_gamma)
-    entry_mach_angle = _mach_angle(entry_mach)
 
-    # Aerospike exit conditions
-    exit_gamma = c.get_exit_MolWt_gamma(Pc=Pc, MR=MR, eps=exit_eps)[1]
-    exit_pm_angle = _prandtl_meyer_angle(exit_mach, exit_gamma)
+
+    # Aerospike Throat Conditions
+    try:
+        entry_mach = max(c.get_MachNumber(Pc=Pc, MR=MR, eps=effective_throat_eps), 1 + 1e-6)
+
+        entry_gamma = c.get_exit_MolWt_gamma(Pc=Pc, MR=MR, eps=effective_throat_eps)[1]
+        entry_pm_angle = _prandtl_meyer_angle(entry_mach, entry_gamma)
+        entry_mach_angle = _mach_angle(entry_mach)
+
+    except Exception as e:
+        errors.append(f"Entry conditions calculations failed with {e}")
+        return errors
+    
+
+    try:
+        exit_mach  = max(c.get_MachNumber(Pc=Pc, MR=MR, eps=exit_eps), 1 + 1e-6)
+
+        exit_gamma = c.get_exit_MolWt_gamma(Pc=Pc, MR=MR, eps=exit_eps)[1]
+        exit_pm_angle = _prandtl_meyer_angle(exit_mach, exit_gamma)
+
+    except Exception as e:
+        errors.append(f"Exit conditions calculation failed with {e} ")
+        return errors
 
     # Loop
     for i in range(N):
         mach = entry_mach + (i / N) * (exit_mach - entry_mach)
 
         # Station Values
-        eps = _eps_from_mach(mach, Pc, MR, c)
-        gamma = c.get_exit_MolWt_gamma(Pc=Pc, MR=MR, eps=eps)[1]
+        try:
+            eps = _eps_from_mach(mach, Pc, MR, c)
+            gamma = c.get_exit_MolWt_gamma(Pc=Pc, MR=MR, eps=eps)[1]
 
-        # Angles
-        pm_angle   = _prandtl_meyer_angle(mach, gamma)
-        mach_angle = _mach_angle(mach)
-        flow_angle = (exit_pm_angle - entry_pm_angle) + (mach_angle - entry_mach_angle) - pm_angle - (np.radians(90) - throat_angle)
+            # Angles
+            pm_angle   = _prandtl_meyer_angle(mach, gamma)
+            mach_angle = _mach_angle(mach)
+            flow_angle = (exit_pm_angle - entry_pm_angle) + (mach_angle - entry_mach_angle) - pm_angle - (np.radians(90) - throat_angle)
 
-        # Lengths
-        characteristic_length = mach * eps * throat_length
+            # Lengths
+            characteristic_length = mach * eps * throat_length
 
-        # Coordinates
-        x = characteristic_length * np.cos(flow_angle)
-        R = characteristic_length * np.sin(flow_angle)
+            # Coordinates
+            x = characteristic_length * np.cos(flow_angle)
+            R = characteristic_length * np.sin(flow_angle)
+
+        except Exception as e:
+            errors.append(f"Station {i+1} calculation failed with {e}")
+            return errors
 
         # Append to results
         results["x"][i]     = x
         results["R_x"][i]   = R
         results["eps_x"][i] = eps
 
-        print(characteristic_length, np.degrees(flow_angle))
 
-    
-    # Truncate
-    if truncate_percent is not None:
-        results["x"] = results["x"][:int(len(results["x"]) * truncate_percent)]
-        results["R_x"] = results["R_x"][:int(len(results["R_x"]) * truncate_percent)]
-        results["eps_x"] = results["eps_x"][:int(len(results["eps_x"]) * truncate_percent)]
+    results["x"] = results["x"][:int(len(results["x"]) * truncate_percent)]
+    results["R_x"] = results["R_x"][:int(len(results["R_x"]) * truncate_percent)]
+    results["eps_x"] = results["eps_x"][:int(len(results["eps_x"]) * truncate_percent)]
 
     return results, errors
