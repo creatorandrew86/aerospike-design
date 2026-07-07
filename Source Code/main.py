@@ -7,7 +7,7 @@ def _resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
     except AttributeError:
-        base_path = os.path.abspath(".")
+        base_path = os.path.dirname(os.path.abspath(__file__))
 
     return os.path.join(base_path, relative_path)
 
@@ -23,7 +23,7 @@ def on_solve():
         return
     
     ui.show_results()
-    
+
 
 def on_save():
     ui.save_file()
@@ -31,8 +31,8 @@ def on_save():
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.title('Aerospike Nozzle Geometry')
-    root.geometry('320x370')
+    root.title('Aerospike')
+    root.geometry('320x300')
     root.resizable(False, True)
 
     icon_path = _resource_path(os.path.join("assets", "icon.ico"))

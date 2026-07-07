@@ -20,14 +20,9 @@ class Interface:
             "Pc":       float(self.input_Pc.get())   if self.input_Pc.get() else None,
             "unit_Pc":  self.unit_Pc.get()           if self.unit_Pc.get() else None,  
             "MR":       float(self.input_MR.get())   if self.input_MR.get() else None,
-            "mfr":      float(self.input_mfr.get())  if self.input_mfr.get() else None,
-            "unit_mfr": self.unit_mfr.get()          if self.unit_mfr.get() else None,
             "eps":      float(self.input_eps.get())  if self.input_eps.get() else None,
 
-            "radius":               float(self.input_radius.get())                if self.input_radius.get() else None,
-            "unit_radius":          self.unit_radius.get()                        if self.unit_radius.get() else None,
             "effective_throat_eps": float(self.input_effective_throat_eps.get())  if self.input_effective_throat_eps.get() else None,
-            "throat_angle":         float(self.input_throat_angle.get())          if self.input_throat_angle.get() else None,
             "truncate_percent":     float(self.input_truncate_percentage.get())   if self.input_truncate_percentage.get() else None,
             "aerospike_resolution": int(self.input_aerospike_resolution.get())    if self.input_aerospike_resolution.get() else None,
         }
@@ -44,7 +39,6 @@ class Interface:
         ttk.Label(self.root, text='Oxidizer:').grid(column=0, row=1, padx=2, sticky='W')
         self.input_oxidizer = ttk.Combobox(self.root, values=OXIDIZER_ITEMS, width=15)
         self.input_oxidizer.grid(column=1, row=1, padx=5, pady=1, sticky='W')
-
         # Fuel
         ttk.Label(self.root, text='Fuel:').grid(column=0, row=2, padx=2, sticky='W')
         self.input_fuel = ttk.Combobox(self.root, values=FUEL_ITEMS, width=15)
@@ -63,59 +57,34 @@ class Interface:
         ttk.Label(self.root, text='Mixture Ratio:').grid(column=0, row=4, padx=2, sticky='W')
         self.input_MR = ttk.Entry(self.root, width=18)
         self.input_MR.grid(column=1, row=4, padx=5, pady=1, sticky='W')
-
-        # Mass Flow
-        ttk.Label(self.root, text='Nozzle Mass Flow:').grid(column=0, row=5, padx=2, sticky='W')
-        self.input_mfr = ttk.Entry(self.root, width=8)
-        self.input_mfr.grid(column=1, row=5, padx=5, pady=1, sticky='W')
-
-        self.unit_mfr = ttk.Combobox(self.root, values=["kg/s", "lb/s", "g/s"], width=4)
-        self.unit_mfr.grid(column=1, row=5, padx=70, pady=1, sticky='W')
-        self.unit_mfr.set("kg/s")
-
         # Area Ratio
-        ttk.Label(self.root, text='Design Area Ratio:').grid(column=0, row=6, padx=2, pady=5, sticky='W')
+        ttk.Label(self.root, text='Design Area Ratio:').grid(column=0, row=5, padx=2, pady=5, sticky='W')
         self.input_eps = ttk.Entry(self.root, width=18)
-        self.input_eps.grid(column=1, row=6, padx=5, pady=1, sticky='W')
+        self.input_eps.grid(column=1, row=5, padx=5, pady=1, sticky='W')
 
 
 
 
-        ttk.Label(self.root, text='Aerospike Definition', font=UNDERLINE_FONT).grid(column=0, row=7, padx=7, pady=4, sticky='W')
-
-        # Top Radius
-        ttk.Label(self.root, text='Aerospike Top Radius:').grid(column=0, row=8, padx=2, sticky='W')
-        self.input_radius = ttk.Entry(self.root, width=8)
-        self.input_radius.grid(column=1, row=8, padx=5, pady=1, sticky='W')
-
-        self.unit_radius = ttk.Combobox(self.root, values=["m", "cm", "in", "ft"], width=4)
-        self.unit_radius.grid(column=1, row=8, padx=70, pady=1, sticky='W')
-        self.unit_radius.set("m")
+        ttk.Label(self.root, text='Aerospike Definition', font=UNDERLINE_FONT).grid(column=0, row=6, padx=7, pady=4, sticky='W')
 
         # Effective Throat Area Ratio
-        ttk.Label(self.root, text='Effective Throat Area Ratio:').grid(column=0, row=9, padx=2, sticky='W')
+        ttk.Label(self.root, text='Effective Throat Area Ratio:').grid(column=0, row=7, padx=2, sticky='W')
         self.input_effective_throat_eps = ttk.Entry(self.root, width=18)
-        self.input_effective_throat_eps.grid(column=1, row=9, padx=5, pady=1, sticky='W')
-
-        # Throat Angle
-        ttk.Label(self.root, text="Throat Angle (deg):").grid(column=0, row=10, padx=2, sticky='W')
-        self.input_throat_angle = ttk.Entry(self.root, width=18)
-        self.input_throat_angle.grid(column=1, row=10, padx=5, pady=1, sticky='W')
+        self.input_effective_throat_eps.grid(column=1, row=7, padx=5, pady=1, sticky='W')
 
         # Truncation
-        ttk.Label(self.root, text='Truncate at (%):').grid(column=0, row=11, padx=2, sticky='W')
+        ttk.Label(self.root, text='Truncate at (%):').grid(column=0, row=8, padx=2, sticky='W')
         self.input_truncate_percentage = ttk.Entry(self.root, width=18)
-        self.input_truncate_percentage.grid(column=1, row=11, padx=5, pady=1, sticky='W')
+        self.input_truncate_percentage.grid(column=1, row=8, padx=5, pady=1, sticky='W')
 
         # Resolution
-        ttk.Label(self.root, text='Aerospike Resolution:').grid(column=0, row=12, padx=2, sticky='W')
+        ttk.Label(self.root, text='Aerospike Resolution:').grid(column=0, row=9, padx=2, sticky='W')
         self.input_aerospike_resolution = ttk.Entry(self.root, width=18)
-        self.input_aerospike_resolution.grid(column=1, row=12, padx=5, pady=1, sticky='W')
-
+        self.input_aerospike_resolution.grid(column=1, row=9, padx=5, pady=1, sticky='W')
 
         # Solver
-        ttk.Button(self.root, text='Run', command=self.on_solve).grid(column=0, row=13, pady=7)
-        ttk.Button(self.root, text='Save Contour', command=self.on_save).grid(column=1, row=13, pady=7)
+        ttk.Button(self.root, text='Run', command=self.on_solve).grid(column=0, row=11, pady=7)
+        ttk.Button(self.root, text='Save Contour', command=self.on_save).grid(column=1, row=11, pady=7)
 
 
     def show_results(self):
@@ -126,10 +95,10 @@ class Interface:
         x, y = self.results["x"], self.results["R_x"]
 
         plt.figure()
-        plt.plot(x, y, color='black')
+        plt.plot(y, x, color='black')
         plt.gca().set_aspect('equal', adjustable='box')
-        plt.xlabel('x')
-        plt.ylabel('y')
+        plt.xlabel('R')
+        plt.ylabel('x')
         plt.grid()
         plt.show()
 
