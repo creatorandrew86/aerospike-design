@@ -76,10 +76,8 @@ def generate_aerospike_contour(inputs: dict) -> tuple[dict, list[str]]:
     # Aerospike Exit Conditions
     try:
         exit_mach  = max(c.get_MachNumber(Pc=Pc, MR=MR, eps=exit_eps), 1 + 1e-6)
-
         exit_gamma = c.get_exit_MolWt_gamma(Pc=Pc, MR=MR, eps=exit_eps)[1]
         exit_pm_angle = _prandtl_meyer_angle(exit_mach, exit_gamma)
-        exit_mach_angle = _mach_angle(exit_mach)
 
     except Exception as e:
         errors.append(f"Exit conditions calculation failed with {e} ")
@@ -95,14 +93,10 @@ def generate_aerospike_contour(inputs: dict) -> tuple[dict, list[str]]:
             # Angles
             eps = _eps_from_mach(mach, Pc, MR, c)
             gamma = c.get_exit_MolWt_gamma(Pc=Pc, MR=MR, eps=eps)[1]
+            mach_angle = _mach_angle(mach)
 
             pm_angle   = _prandtl_meyer_angle(mach, gamma)
-            flow_angle = exit_mach_angle + (exit_pm_angle - pm_angle)
-
-            # Throat angle (first station)
-            if i == 0:
-                throat_angle = flow_angle - np.pi / 2.0
-
+            flow_angle = mach_angle + (exit_pm_angle - pm_angle)
 
             # Length and coordinates
             characteristic_length = mach * eps
